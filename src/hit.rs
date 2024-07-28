@@ -1,12 +1,13 @@
-use std::{ops::Range, rc::Rc};
+use std::ops::Range;
 use crate::{material::Material, ray::Ray, vec3::Vec3};
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub point: Vec3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
-    pub mat: Rc<dyn Material>
+    //pub mat: Rc<dyn Material>
+    pub mat: &'a dyn Material
 }
 
 pub trait Hittable {

@@ -6,7 +6,7 @@ pub mod sphere;
 pub mod camera;
 pub mod material;
 
-use std::{rc::Rc, time::SystemTime};
+use std::time::SystemTime;
 
 use material::{Dialectric, Lambertian, Metal};
 use rand::Rng;
@@ -21,7 +21,10 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     let ground_material = Lambertian {albedo: Vec3{x: 0.5, y: 0.5, z: 0.5}};
-    world.push(Box::new(Sphere {center: Vec3{x:0.0, y: -1000.0, z: 0.0}, radius: 1000.0, mat: Rc::new(ground_material)}));
+    //world.push(Box::new(Sphere {center: Vec3{x:0.0, y: -1000.0, z: 0.0}, radius: 1000.0, mat: Rc::new(ground_material)}));
+    world.push(Box::new(Sphere {center: Vec3{x:0.0, y: -1000.0, z: 0.0}, radius: 1000.0, mat: ground_material}));
+
+
 
     for a in -11..11 {
         for b in -11..11 {
@@ -33,21 +36,22 @@ fn main() {
                     let t_albedo = Vec3::random();
                     let y_albedo = Vec3::random();
                     let albedo = t_albedo * y_albedo;
-                    world.push(Box::new(Sphere {center: center, radius: 0.2, mat: Rc::new(Lambertian{albedo: albedo})}));
+                    world.push(Box::new(Sphere {center: center, radius: 0.2, mat: Lambertian{albedo: albedo}}));
                  } else if choose_mat < 0.95 {
                     let albedo = Vec3::random_bounds(0.5..1.0);
                     let fuzz: f64 = rng.gen_range(0.0..0.5);
-                    world.push(Box::new(Sphere {center: center, radius: 0.2, mat: Rc::new(Metal{albedo: albedo, fuzz: fuzz})}));                                          
+                    world.push(Box::new(Sphere {center: center, radius: 0.2, mat: Metal{albedo: albedo, fuzz: fuzz}}));                                          
                  } else {
-                    world.push(Box::new(Sphere {center: center, radius: 0.2, mat: Rc::new(Dialectric{refraction_index: 1.5})}));                                          
+                    world.push(Box::new(Sphere {center: center, radius: 0.2, mat: Dialectric{refraction_index: 1.5}}));                                          
                  }
             }
         } 
     }
 
-    world.push(Box::new(Sphere {center: Vec3{x: 0.0, y: 1.0, z: 0.0}, radius: 1.0, mat: Rc::new(Dialectric{refraction_index: 1.5})}));
-    world.push(Box::new(Sphere {center: Vec3{x: -4.0, y: 1.0, z: 0.0}, radius: 1.0, mat: Rc::new(Lambertian{albedo: Vec3{x: 0.4, y: 0.2, z: 0.1}})}));
-    world.push(Box::new(Sphere {center: Vec3{x: 4.0, y: 1.0, z: 0.0}, radius: 1.0, mat: Rc::new(Metal{albedo: Vec3{x: 0.7, y: 0.6, z: 0.5}, fuzz: 0.0})}));
+    world.push(Box::new(Sphere {center: Vec3{x: 0.0, y: 1.0, z: 0.0}, radius: 1.0, mat: Dialectric{refraction_index: 1.5}}));
+    world.push(Box::new(Sphere {center: Vec3{x: -4.0, y: 1.0, z: 0.0}, radius: 1.0, mat: Lambertian{albedo: Vec3{x: 0.4, y: 0.2, z: 0.1}}}));
+    world.push(Box::new(Sphere {center: Vec3{x: 4.0, y: 1.0, z: 0.0}, radius: 1.0, mat: Metal{albedo: Vec3{x: 0.7, y: 0.6, z: 0.5}, fuzz: 0.0}}));
+
 
     let mut cam = Camera::default();
     cam.aspect_ratio = 16.0/9.0;

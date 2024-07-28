@@ -1,14 +1,15 @@
-use std::{ops::Range, rc::Rc};
+use std::ops::Range;
 
 use crate::{hit::{HitRecord, Hittable}, ray::Ray, vec3::Vec3, material::Material};
 
-pub struct Sphere {
+pub struct Sphere<M: Material> {
     pub center: Vec3,
     pub radius: f64,
-    pub mat: Rc<dyn Material>
+    //pub mat: Rc<dyn Material>
+    pub mat: M
 }
 
-impl Hittable for Sphere {
+impl<M: Material> Hittable for Sphere<M> {
     fn hit(&self, r: Ray, ray_t: Range<f64>) -> Option<HitRecord> {
         let oc = self.center - r.origin;
         let a = r.dir.length_squared();
@@ -49,7 +50,7 @@ impl Hittable for Sphere {
                 normal: normal,
                 t: root,
                 front_face: front_face,
-                mat: self.mat.clone()
+                mat: &self.mat
             }
         )
     }
