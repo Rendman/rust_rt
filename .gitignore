@@ -3,3 +3,5 @@
 /gamma
 /.vscode
 Cargo.lock
+flamegraph.svg
+perf.data
