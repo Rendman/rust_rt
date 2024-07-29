@@ -1,4 +1,3 @@
-pub mod color;
 pub mod ray;
 pub mod hit;
 pub mod sphere;
@@ -20,7 +19,6 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     let ground_material = Lambertian {albedo: Vector3::new( 0.5, 0.5, 0.5)};
-    //world.push(Box::new(Sphere {center: Vec3{x:0.0, y: -1000.0, z: 0.0}, radius: 1000.0, mat: Rc::new(ground_material)}));
     world.push(Box::new(Sphere {center: Vector3::new(0.0, -1000.0, 0.0), radius: 1000.0, mat: ground_material}));
 
 

@@ -3,7 +3,7 @@ use std::{fs::File, io::{self, BufWriter, Write}, path::Path};
 use nalgebra::Vector3;
 use rand::prelude::*;
 
-use crate::{color::Color, hit::Hittable, ray::Ray};
+use crate::{hit::Hittable, ray::Ray};
 
 
 #[derive(Copy, Clone, Default)]
@@ -28,6 +28,17 @@ pub struct Camera {
     defocus_disk_u: Vector3<f64>,
     defocus_disk_v: Vector3<f64>,
 }
+
+// What does the camera need?  Initialization should be done via a new function.
+
+pub struct Camera2 {
+    aspect_ratio: f64,
+    samples_per_pixel: u32,
+    image_width: u32,
+    max_depth: u32,
+    
+}
+
 
 impl Camera {
     
@@ -93,7 +104,7 @@ impl Camera {
         for j in 0..self.image_height {
             for i in 0..self.image_width {
                 
-                let mut pixel_color = Color{r: 0.0, g: 0.0, b: 0.0};
+                let mut pixel_color = Vector3::new(0.0,0.0,0.0);
                 let mut idx = 0;
                 while idx < self.samples_per_pixel {
                     let r = self.get_ray(i, j);
@@ -103,13 +114,13 @@ impl Camera {
                
                 let intensity = 0.0..0.999;
 
-                pixel_color.r = pixel_color.r * self.pixel_sample_scale;
-                pixel_color.g = pixel_color.g * self.pixel_sample_scale;
-                pixel_color.b = pixel_color.b * self.pixel_sample_scale;
+                pixel_color.x = pixel_color.x * self.pixel_sample_scale;
+                pixel_color.y = pixel_color.y * self.pixel_sample_scale;
+                pixel_color.z = pixel_color.z * self.pixel_sample_scale;
 
-                let ir = (256.0 * f64::clamp(Color::linear_to_gamma(pixel_color.r), intensity.start, intensity.end)) as u8;
-                let ig = (256.0 * f64::clamp(Color::linear_to_gamma(pixel_color.g), intensity.start, intensity.end)) as u8;
-                let ib = (256.0 * f64::clamp(Color::linear_to_gamma(pixel_color.b), intensity.start, intensity.end)) as u8;
+                let ir = (256.0 * f64::clamp(linear_to_gamma(pixel_color.x), intensity.start, intensity.end)) as u8;
+                let ig = (256.0 * f64::clamp(linear_to_gamma(pixel_color.y), intensity.start, intensity.end)) as u8;
+                let ib = (256.0 * f64::clamp(linear_to_gamma(pixel_color.z), intensity.start, intensity.end)) as u8;
             
                 image_data.push(ir);
                 image_data.push(ig);
@@ -136,43 +147,47 @@ impl Camera {
         if self.defocus_angle <= 0.0 {
             ray_origin = self.center
         } else {
-            ray_origin = self.defocus_disk_sample();
+            let p = random_in_unit_disk();
+            ray_origin = self.center + (self.defocus_disk_u * p.x) + (self.defocus_disk_v * p.y)
         }
         let ray_direction = pixel_sample - ray_origin;
 
         Ray{origin: ray_origin, dir: ray_direction}
     }
 
-    fn ray_color(self, ray: Ray, depth: u32, world: &Vec<Box<dyn Hittable>>) -> Color {
+    fn ray_color(self, ray: Ray, depth: u32, world: &Vec<Box<dyn Hittable>>) -> Vector3<f64> {
         if depth <= 0 {
-            return Color{r: 0.0, g: 0.0, b: 0.0};
+            return Vector3::new(0.0, 0.0, 0.0);
         }
         
         if let Some(hit) = world.hit(ray, 0.001..f64::MAX) {
             if let Some(at_sc) = hit.mat.scatter(&ray, &hit) {
-                return Color{r:at_sc.1.x, g:at_sc.1.y, b:at_sc.1.z} * self.ray_color(at_sc.0, depth-1, world)
+                return Vector3::new(at_sc.1.x, at_sc.1.y, at_sc.1.z).component_mul(&self.ray_color(at_sc.0, depth-1, world))
+                
             } else {
-                return Color{r:0.0, g:0.0, b:0.0}
+                return Vector3::new(0.0, 0.0, 0.0)
             }
         } else {
             let unit_direction = ray.dir.normalize();
             let a = 0.5*(unit_direction.y + 1.0);
-            Color{r:1.0, g:1.0, b:1.0} * (1.0-a) + Color{r:0.5, g:0.7, b:1.0} * a
+            Vector3::new(1.0, 1.0, 1.0) * (1.0-a) + Vector3::new(0.5, 0.7, 1.0) * a
         }        
     }
+}
 
-    fn defocus_disk_sample(self) -> Vector3<f64> {
-        let p = Self::random_in_unit_disk();
-        self.center + (self.defocus_disk_u * p.x) + (self.defocus_disk_v * p.y)
-    }
-
-    pub fn random_in_unit_disk() -> Vector3<f64> {
-        let mut rng = thread_rng(); 
-        loop {
-            let p = Vector3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
-            if p.norm_squared() < 1.0 {
-                return p;
-            }
+fn random_in_unit_disk() -> Vector3<f64> {
+    let mut rng = thread_rng(); 
+    loop {
+        let p = Vector3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
+        if p.norm_squared() < 1.0 {
+            return p;
         }
     }
+}
+
+pub fn linear_to_gamma(linear_component: f64) -> f64 {
+    if linear_component > 0.0 {
+        return linear_component.sqrt();
+    }
+    0.0
 }

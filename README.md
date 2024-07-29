@@ -15,4 +15,7 @@ The Hittable implementation for Sphere uses .clone() on the Material field in th
 
 I2.0: 6600 secs, lol
 
-Iteration 3.... IDK
+Iteration 3:
+Replace homemade Vec3 implementation with the nalgebra version.
+
+I3.0: 5841 secs
