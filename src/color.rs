@@ -1,7 +1,5 @@
 use std::ops;
 
-use crate::vec3::Vec3;
-
 pub struct Color {
     pub r: f64,
     pub g: f64,
@@ -42,13 +40,6 @@ impl ops::Add for Color {
     }
 }
 
-impl ops::Add<Vec3> for Color {
-    type Output = Color;
-    
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Color {r: self.r + rhs.x, g: self.g + rhs.y, b: self.b + rhs.z}
-    }
-}
 
 impl ops::AddAssign for Color {
     fn add_assign(&mut self, rhs: Self) {

@@ -1,9 +1,11 @@
 use std::ops::Range;
 
-use crate::{hit::{HitRecord, Hittable}, ray::Ray, vec3::Vec3, material::Material};
+use nalgebra::Vector3;
+
+use crate::{hit::{HitRecord, Hittable}, ray::Ray, material::Material};
 
 pub struct Sphere<M: Material> {
-    pub center: Vec3,
+    pub center: Vector3<f64>,
     pub radius: f64,
     //pub mat: Rc<dyn Material>
     pub mat: M
@@ -12,9 +14,9 @@ pub struct Sphere<M: Material> {
 impl<M: Material> Hittable for Sphere<M> {
     fn hit(&self, r: Ray, ray_t: Range<f64>) -> Option<HitRecord> {
         let oc = self.center - r.origin;
-        let a = r.dir.length_squared();
-        let h = r.dir.dot(oc);
-        let c = oc.length_squared() - self.radius * self.radius;
+        let a = r.dir.norm_squared();
+        let h = r.dir.dot(&oc);
+        let c = oc.norm_squared() - self.radius * self.radius;
 
         let discriminant = h*h - a*c;
         
@@ -37,7 +39,7 @@ impl<M: Material> Hittable for Sphere<M> {
         let outward_normal = (pt - self.center) / self.radius;
         let normal;
 
-        let front_face = r.dir.dot(outward_normal) < 0.0;
+        let front_face = r.dir.dot(&outward_normal) < 0.0;
         if front_face { 
             normal = outward_normal;
         } else {

@@ -14,3 +14,5 @@ Iteration 2:
 The Hittable implementation for Sphere uses .clone() on the Material field in the HitRecord. Does this deep copy cause a performance issue? Refactoring to eliminate the clone and just pass references to the original material.
 
 I2.0: 6600 secs, lol
+
+Iteration 3.... IDK

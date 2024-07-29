@@ -1,9 +1,11 @@
 use std::ops::Range;
-use crate::{material::Material, ray::Ray, vec3::Vec3};
+use nalgebra::Vector3;
+
+use crate::{material::Material, ray::Ray};
 
 pub struct HitRecord<'a> {
-    pub point: Vec3,
-    pub normal: Vec3,
+    pub point: Vector3<f64>,
+    pub normal: Vector3<f64>,
     pub t: f64,
     pub front_face: bool,
     //pub mat: Rc<dyn Material>

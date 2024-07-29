@@ -6,11 +6,10 @@ edition = "2021"
 [dependencies]
 png = "0.17.13"
 rand = "0.8.5"
+nalgebra = "*"
 
 [profile.dev]
 opt-level=0
 
 [profile.release]
-incremental = true
-debug = true
-lto = "fat"
+opt-level=3

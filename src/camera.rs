@@ -1,8 +1,9 @@
 use core::f64;
 use std::{fs::File, io::{self, BufWriter, Write}, path::Path};
+use nalgebra::Vector3;
 use rand::prelude::*;
 
-use crate::{color::Color, hit::Hittable, ray::Ray, vec3::Vec3};
+use crate::{color::Color, hit::Hittable, ray::Ray};
 
 
 #[derive(Copy, Clone, Default)]
@@ -12,20 +13,20 @@ pub struct Camera {
     pub image_width : u32,
     pub max_depth : u32,
     pub vfov: f64,
-    pub lookfrom: Vec3,
-    pub lookat: Vec3,
-    pub vup: Vec3,
+    pub lookfrom: Vector3<f64>,
+    pub lookat: Vector3<f64>,
+    pub vup: Vector3<f64>,
     pub defocus_angle: f64,
     pub focus_dist: f64,
 
     pixel_sample_scale: f64,
     image_height : u32,
-    center : Vec3,
-    pixel_00loc: Vec3, 
-    pixel_delta_u: Vec3,
-    pixel_delta_v: Vec3,
-    defocus_disk_u: Vec3,
-    defocus_disk_v: Vec3,
+    center : Vector3<f64>,
+    pixel_00loc: Vector3<f64>, 
+    pixel_delta_u: Vector3<f64>,
+    pixel_delta_v: Vector3<f64>,
+    defocus_disk_u: Vector3<f64>,
+    defocus_disk_v: Vector3<f64>,
 }
 
 impl Camera {
@@ -40,8 +41,6 @@ impl Camera {
         self.center = self.lookfrom;
 
         self.pixel_sample_scale = 1.0 / self.samples_per_pixel as f64;
-
-        //let focal_length = (self.lookfrom - self.lookat).length();
         
         let theta = self.vfov.to_radians();
         let h = (theta/2.0).tan();
@@ -50,9 +49,9 @@ impl Camera {
         
         let viewport_width = viewport_height * ((self.image_width as f64)/self.image_height as f64);
 
-        let w = (self.lookfrom - self.lookat).unit_vector();
-        let u = (self.vup.cross(w)).unit_vector();
-        let v = w.cross(u);
+        let w = (self.lookfrom - self.lookat).normalize();
+        let u = (self.vup.cross(&w)).normalize();
+        let v = w.cross(&u);
 
         let viewport_u = u * viewport_width;
         let viewport_v = -v * viewport_height;
@@ -129,7 +128,7 @@ impl Camera {
         let tx : f64 = rng.gen();
         let ty : f64 = rng.gen();
 
-        let offset = Vec3{x: tx-0.5, y: ty-0.5, z: 0.0 };
+        let offset = Vector3::new(tx-0.5, ty-0.5, 0.0);
         
         let pixel_sample = self.pixel_00loc + (self.pixel_delta_u * (i as f64 + offset.x))
                                                   + (self.pixel_delta_v * (j as f64 + offset.y));
@@ -156,14 +155,24 @@ impl Camera {
                 return Color{r:0.0, g:0.0, b:0.0}
             }
         } else {
-            let unit_direction = ray.dir.unit_vector();
+            let unit_direction = ray.dir.normalize();
             let a = 0.5*(unit_direction.y + 1.0);
             Color{r:1.0, g:1.0, b:1.0} * (1.0-a) + Color{r:0.5, g:0.7, b:1.0} * a
         }        
     }
 
-    fn defocus_disk_sample(self) -> Vec3 {
-        let p = Vec3::random_in_unit_disk();
+    fn defocus_disk_sample(self) -> Vector3<f64> {
+        let p = Self::random_in_unit_disk();
         self.center + (self.defocus_disk_u * p.x) + (self.defocus_disk_v * p.y)
+    }
+
+    pub fn random_in_unit_disk() -> Vector3<f64> {
+        let mut rng = thread_rng(); 
+        loop {
+            let p = Vector3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
+            if p.norm_squared() < 1.0 {
+                return p;
+            }
+        }
     }
 }
